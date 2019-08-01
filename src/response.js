@@ -1,4 +1,6 @@
-const response = {
+import { ResponseType } from './App';
+
+const response: ResponseType = {
   count: 14,
   items: [
     {
