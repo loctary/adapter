@@ -1,6 +1,31 @@
-import { ResponseType } from './App';
+// @flow
+export type ViewinfoTypeDefault = {|
+  rotations: Array<number>,
+  pages: number,
+|};
 
-const response: ResponseType = {
+export type ItemsTypeDefault = {|
+  ltext: string,
+  created: string,
+  sourceID: string,
+  linkid: string,
+  notes: string,
+  tags: Array<string>,
+  reason: string,
+  versionID: string,
+  details: string,
+  finInfo: any,
+  viewinfo: ViewinfoTypeDefault,
+  documentID: string,
+|};
+
+export type ResponseTypeDefault = {|
+  count: number,
+  items: Array<ItemsTypeDefault>,
+  pageToken: any,
+|};
+
+const response: ResponseTypeDefault = {
   count: 14,
   items: [
     {

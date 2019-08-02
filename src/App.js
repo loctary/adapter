@@ -1,14 +1,15 @@
 // @flow
 import React, { Component } from 'react';
-import { Record, Set, List } from 'immutable';
+import { Record, List } from 'immutable';
+import type { RecordFactory, RecordOf } from 'immutable';
 import response from './response';
 
-type ViewinfoType = {
-  pages: string,
-  rotations: List<int>,
-};
+type ViewinfoType = {|
+  pages: number,
+  rotations: List<number>,
+|};
 
-type ItemsType = {
+type ItemsType = {|
   ltext: string,
   created: string,
   sourceID: string,
@@ -19,22 +20,22 @@ type ItemsType = {
   versionID: string,
   details: string,
   finInfo: any,
-  viewinfo: Record<ViewinfoType>,
-  documentID: string,
-};
+  viewinfo: RecordOf<ViewinfoType>,
+  documentID: string, 
+|};
 
-export type ResponseType = {
-  count: int,
-  items: Record<ItemsType>,
+export type ResponseType = {|
+  count: number,
+  items: List<RecordOf<ItemsType>>,
   pageToken: any,
-};
+|};
 
-const ViewinfoFactory: ViewinfoType = new Record({
+const ViewinfoFactory: RecordFactory<ViewinfoType> = new Record({
   pages: 0,
   rotations: new List(),
 });
 
-const ItemsFactory: ItemsType = new Record({
+const ItemsFactory: RecordFactory<ItemsType> = new Record({
   ltext: '',
   created: '',
   sourceID: '',
@@ -49,31 +50,47 @@ const ItemsFactory: ItemsType = new Record({
   documentID: '',
 });
 
-const ResponseFactory: ResponseType = new Record({
+const ResponseFactory: RecordFactory<ResponseType> = new Record({
   count: 0,
   items: ItemsFactory(),
   pageToken: null,
 });
 
-class App extends Component {
+class App extends Component<{}> {
   componentDidMount() {
-    const itemsMapped = response.items
-      ? response.items.map(item => {
-          const tags = item.tags ? new Set(item.tags) : undefined;
-          const rotations = item.viewinfo && item.viewinfo.rotations ? new List(item.viewinfo.rotations) : undefined;
-          const viewinfo = item.viewinfo ? ViewinfoFactory({ ...item.viewinfo, rotations }) : undefined;
-          return { ...item, tags, viewinfo };
-        })
-      : undefined;
-    const items = itemsMapped ? itemsMapped.map(item => ItemsFactory(item)) : undefined;
-    const responseMapped = { ...response, items };
+    const itemsMapped = response.items.map(item => {
+      const tags = item.tags ? new Set(item.tags) : new Set();
+      const rotations = List(item.viewinfo.rotations);
+      const viewinfo = item.viewinfo ? ViewinfoFactory({ pages: item.viewinfo.pages, rotations }) : ViewinfoFactory();
+      // const result = { ...item, tags, viewinfo }; // not setting proper types
+      const {
+        ltext,
+        created,
+        sourceID,
+        linkid,
+        notes,
+        reason,
+        versionID,
+        details,
+        finInfo,
+        documentID,
+      } = item
+      const result = { ltext, created, sourceID, linkid, notes, reason, versionID, details, finInfo, documentID, tags, viewinfo };
+      return ItemsFactory(result);
+    });
+    const items = List(itemsMapped);
+    // const responseMapped = { ...response, items }; // not setting proper types
+    const { count, pageToken } = response;
+    const responseMapped = { count, items, pageToken };
     const result = ResponseFactory(responseMapped);
     console.log(result);
   }
-
+  
   render() {
     return <div />;
   }
+  
 }
 
 export default App;
+
