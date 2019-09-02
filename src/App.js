@@ -1,13 +1,15 @@
+// @flow
 import React, { Component } from 'react';
-import { Record, Set, List } from 'immutable';
+import { Record, List } from 'immutable';
+import type { RecordFactory, RecordOf } from 'immutable';
 import response from './response';
 
-type ViewinfoTypes = {
+type ViewinfoType = {|
   pages: number,
-  rotations: List<int>,
-};
+  rotations: List<number>,
+|};
 
-type ResponseTypes = {
+type ItemsType = {|
   ltext: string,
   created: string,
   sourceID: string,
@@ -18,16 +20,22 @@ type ResponseTypes = {
   versionID: string,
   details: string,
   finInfo: any,
-  viewinfo: Record<ViewinfoTypes>,
-  documentID: string,
-};
+  viewinfo: RecordOf<ViewinfoType>,
+  documentID: string, 
+|};
 
-const ViewinfoFactory: ViewinfoTypes = new Record({
+export type ResponseType = {|
+  count: number,
+  items: List<RecordOf<ItemsType>>,
+  pageToken: any,
+|};
+
+const ViewinfoFactory: RecordFactory<ViewinfoType> = new Record({
   pages: 0,
   rotations: new List(),
 });
 
-const DocumentFactory: ResponseTypes = new Record({
+const ItemsFactory: RecordFactory<ItemsType> = new Record({
   ltext: '',
   created: '',
   sourceID: '',
@@ -42,16 +50,33 @@ const DocumentFactory: ResponseTypes = new Record({
   documentID: '',
 });
 
-class App extends Component {
-  componentDidMount() {
-    const Res = Record(response);
-    const res = new Res();
-    console.log(res.items.map(DocumentFactory));
-  }
+const ResponseFactory: RecordFactory<ResponseType> = new Record({
+  count: 0,
+  items: ItemsFactory(),
+  pageToken: null,
+});
 
+class App extends Component<{}> {
+  componentDidMount() {
+    const itemsMapped = response.items.map(item => {
+      const tagsMapped = item.tags ? new Set(item.tags) : new Set();
+      const rotationsMapped = List(item.viewinfo.rotations);
+      const viewinfoMapped = item.viewinfo ? ViewinfoFactory({ pages: item.viewinfo.pages, rotations: rotationsMapped }) : ViewinfoFactory();
+      const { tags, viewinfo, ...itemRest } = item;
+      const result = { ...itemRest, viewinfo: viewinfoMapped, tags: tagsMapped };
+      return ItemsFactory(result);
+    });
+    const { items, ...responseRest } = response;
+    const responseMapped = { ...responseRest, items: List(itemsMapped) };
+    const result = ResponseFactory(responseMapped);
+    console.log(result);
+  }
+  
   render() {
     return <div />;
   }
+  
 }
 
 export default App;
+
