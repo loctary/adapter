@@ -59,29 +59,15 @@ const ResponseFactory: RecordFactory<ResponseType> = new Record({
 class App extends Component<{}> {
   componentDidMount() {
     const itemsMapped = response.items.map(item => {
-      const tags = item.tags ? new Set(item.tags) : new Set();
-      const rotations = List(item.viewinfo.rotations);
-      const viewinfo = item.viewinfo ? ViewinfoFactory({ pages: item.viewinfo.pages, rotations }) : ViewinfoFactory();
-      // const result = { ...item, tags, viewinfo }; // not setting proper types
-      const {
-        ltext,
-        created,
-        sourceID,
-        linkid,
-        notes,
-        reason,
-        versionID,
-        details,
-        finInfo,
-        documentID,
-      } = item
-      const result = { ltext, created, sourceID, linkid, notes, reason, versionID, details, finInfo, documentID, tags, viewinfo };
+      const tagsMapped = item.tags ? new Set(item.tags) : new Set();
+      const rotationsMapped = List(item.viewinfo.rotations);
+      const viewinfoMapped = item.viewinfo ? ViewinfoFactory({ pages: item.viewinfo.pages, rotations: rotationsMapped }) : ViewinfoFactory();
+      const { tags, viewinfo, ...itemRest } = item;
+      const result = { ...itemRest, viewinfo: viewinfoMapped, tags: tagsMapped };
       return ItemsFactory(result);
     });
-    const items = List(itemsMapped);
-    // const responseMapped = { ...response, items }; // not setting proper types
-    const { count, pageToken } = response;
-    const responseMapped = { count, items, pageToken };
+    const { items, ...responseRest } = response;
+    const responseMapped = { ...responseRest, items: List(itemsMapped) };
     const result = ResponseFactory(responseMapped);
     console.log(result);
   }
